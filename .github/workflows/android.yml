@@ -10,15 +10,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Java JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Android SDK & NDK
-        uses: android-actions/setup-android@v3
-
       - name: Install Rust target
         run: rustup target add aarch64-linux-android
 
@@ -26,6 +17,9 @@ jobs:
         run: cargo install cargo-apk
 
       - name: Build APK
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
+          NDK_HOME: /usr/local/lib/android/sdk/ndk-bundle
         run: cargo apk build --release
 
       - name: Upload APK
