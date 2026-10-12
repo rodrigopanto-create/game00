@@ -1,3 +1,4 @@
+#![windows_subsystem = "windows"]
 use game00::run;
 
 #[macroquad::main("Macroquad Shooter")]

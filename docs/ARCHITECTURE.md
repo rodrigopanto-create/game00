@@ -2,64 +2,60 @@
 
 ## Vision general
 
-El proyecto usa una arquitectura simple orientada a loop de juego:
-
-1. Entrada
-2. Actualizacion de estado
-3. Colisiones
-4. Limpieza de entidades
-5. Render
-
-Todo ocurre dentro de `run()` y se ejecuta una vez por frame.
+El crate se organiza en entidades y modulos de juego. Macroquad mantiene el loop de renderizado: en cada frame se lee el estado de entrada, se actualiza la partida cuando corresponde, se dibuja la pantalla activa y se espera el siguiente frame.
 
 ## Modulos
 
-### `main.rs`
+### Punto de entrada y API
 
-- Inicializa Macroquad.
-- Delega toda la ejecucion a `run()`.
+- `src/main.rs` inicia Macroquad con el titulo `Macroquad Shooter` y llama a `game00::run()`. En Windows, oculta la consola con `windows_subsystem`.
+- `src/lib.rs` expone `entities` y `game`, y reexporta `run()` para que el ejecutable tenga un punto de entrada simple.
+- `src/entities.rs` contiene los datos de las entidades:
+  - `Bullet`: rectangulo, velocidad vertical y estado activo.
+  - `Target`: rectangulo, estado activo, tipo y datos de movimiento ZigZag.
+  - `TargetType`: comportamiento, tamano, color y puntuacion de cada tipo.
 
-### `lib.rs`
+### Loop y pantallas
 
-- Declara modulos publicos.
-- Reexporta `run` como API del crate.
+- `src/game.rs` controla el loop y las transiciones entre `StartScreen`, `Playing` y `GameOver`.
+- `src/game/screens.rs` dibuja la pantalla inicial y la pantalla de fin de partida.
+- `src/game/session.rs` mantiene el estado de una partida: jugador, entidades, vida, puntaje y dificultad. Coordina la actualizacion y el renderizado.
+- `src/game/session/player.rs` procesa movimiento/disparo y dibuja la nave.
+- `src/game/session/world.rs` crea objetivos, actualiza balas y objetivos, resuelve colisiones, elimina entidades inactivas y dibuja el mundo.
+- `src/game/session/hud.rs` dibuja el puntaje y la barra de vida.
 
-### `entities.rs`
+## Ciclo de vida y flujo por frame
 
-- Define datos de entidades del juego.
-- `Bullet`: rectangulo, velocidad y bandera de actividad.
-- `Target`: rectangulo y bandera de actividad.
+1. `run()` obtiene el tiempo transcurrido desde el frame anterior.
+2. En `StartScreen`, acepta Espacio o Enter, reinicia la sesion e inicia la partida.
+3. En `Playing`, `GameSession::update()` actualiza la dificultad, el jugador y el mundo. Si la vida llega a cero, el estado cambia a `GameOver`.
+4. La sesion dibuja fondo, nave, balas, objetivos y HUD.
+5. En `GameOver`, se muestra el puntaje final. Espacio o Enter reinicia los datos y vuelve a la pantalla inicial.
+6. `next_frame().await` cede el control a Macroquad.
 
-### `game.rs`
+El orden de actualizacion del mundo es: aparicion de objetivos, movimiento de balas, movimiento de objetivos y perdida de vida, colisiones, y limpieza de entidades inactivas.
 
-- Contiene el loop principal.
-- Procesa input del jugador.
-- Spawnea enemigos por temporizador.
-- Actualiza posiciones.
-- Resuelve colisiones.
-- Renderiza mundo y HUD.
+## Tipos de objetivo
 
-## Flujo por frame
+`TargetType` concentra las propiedades comunes de cada variante:
 
-1. Calcular `delta` con `get_frame_time()`.
-2. Aplicar input horizontal al jugador.
-3. Limitar jugador al ancho de pantalla.
-4. Crear bala cuando se presiona espacio.
-5. Spawnear target cuando el timer supera 1.0s.
-6. Mover balas y targets.
-7. Detectar colisiones bala vs target.
-8. Limpiar entidades inactivas.
-9. Dibujar fondo, jugador, balas, targets y score.
-10. Esperar siguiente frame con `next_frame().await`.
+| Tipo | Tamano | Multiplicador de velocidad | Color | Puntos |
+| --- | ---: | ---: | --- | ---: |
+| `Standard` | 35 px | 1x | Rojo | 100 |
+| `Fast` | 20 px | 2x | Naranja | 200 |
+| `ZigZag` | 35 px | 1x | Morado/azul | 100 |
 
-## Decisiones actuales
+La velocidad base sube desde 150 px/s en funcion del tiempo de partida, hasta 550 px/s. El intervalo de aparicion baja desde 1.0 s hasta un minimo de 0.3 s. Los objetivos ZigZag suman una oscilacion seno horizontal a su movimiento descendente.
 
-- Entidades representadas con `Rect` para simplificar colision y render.
-- Colision AABB para costo bajo por frame.
-- Textura del jugador generada en runtime para evitar dependencia de assets.
+Todos los objetivos usan su `Rect` tanto para dibujarse como para colisionar. Las balas y objetivos se retiran cuando dejan de estar activos.
 
-## Deuda tecnica conocida
+## Automatizacion Android
 
-- `game.rs` aun concentra demasiadas responsabilidades.
-- Falta sistema de estados de juego.
-- Falta separar configuraciones en constantes estructuradas.
+`.github/workflows/android.yml` ejecuta en GitHub Actions al hacer `push` a `main`. Instala el target Rust `aarch64-linux-android`, instala `cargo-apk`, construye el APK release y carga los APK de `target/android-artifacts/` como artefacto `game00-android`. El workflow falla si no se encuentra ningun APK.
+
+## Decisiones
+
+- Macroquad gestiona el ciclo de vida de la ventana, entrada y render.
+- Las entidades usan rectangulos para mantener sencilla la deteccion AABB y la representacion visual.
+- Los modulos de `session` son privados al modulo de juego y separan responsabilidades sin exponer el estado interno como API publica.
+- El jugador y los objetivos se dibujan con primitivas; no requieren archivos de imagen externos.
