@@ -10,6 +10,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK & NDK
+        uses: android-actions/setup-android@v3
+
       - name: Install Rust target
         run: rustup target add aarch64-linux-android
 
@@ -22,6 +31,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: game00-android
-          path: target/android-artifacts/*.apk
-          if-no-files-found: error
+          name: game00-android-apk
+          path: target/generated/apk/release/*.apk
