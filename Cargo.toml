@@ -1,7 +1,27 @@
 [package]
 name = "game00"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
 macroquad = "0.4.16"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "game00"
+path = "src/main.rs"
+
+[package.metadata.android]
+package_name = "com.rodrigopanto.game00"
+label = "Macroquad Shooter"
+assets = "assets"
+build_targets = ["aarch64-linux-android"]
+
+[package.metadata.android.activity_attributes]
+"android:exported" = "true"
+
+[profile.release]
+lto = false
+codegen-units = 1

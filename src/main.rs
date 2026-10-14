@@ -1,7 +1,13 @@
-#![windows_subsystem = "windows"]
-use game00::run;
+use macroquad::prelude::*;
 
-#[macroquad::main("Macroquad Shooter")]
+fn window_conf() -> Conf {
+    Conf {
+        window_title: "Game00".to_owned(),
+        ..Default::default()
+    }
+}
+
+#[macroquad::main(window_conf)]
 async fn main() {
-    run().await;
+    game00::run().await;
 }
