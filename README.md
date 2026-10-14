@@ -33,13 +33,25 @@ cargo clippy --all-targets -- -D warnings
 
 ## Controles
 
-| Accion | Teclas |
-| --- | --- |
-| Iniciar o continuar desde la pantalla inicial | Espacio o Enter |
-| Moverse a la izquierda | Flecha izquierda o A |
-| Moverse a la derecha | Flecha derecha o D |
-| Disparar | Espacio |
-| Volver a la pantalla inicial desde Game Over | Espacio o Enter |
+| Accion | Teclas | Pantalla tactil / raton |
+| --- | --- | --- |
+| Iniciar o continuar desde la pantalla inicial | Espacio o Enter | Boton FIRE (abajo a la derecha) |
+| Moverse a la izquierda | Flecha izquierda o A | Boton flecha izquierda (abajo a la izquierda) |
+| Moverse a la derecha | Flecha derecha o D | Boton flecha derecha (abajo a la izquierda) |
+| Disparar | Espacio o Enter | Boton FIRE |
+| Continuar desde Game Over / volver al menu desde High Scores | Espacio o Enter | Boton FIRE |
+| Cambiar letra de las iniciales | Flechas (arriba/abajo/izquierda/derecha), W/S/A/D | Botones de flecha (mantener para avanzar rapido) |
+| Confirmar letra | Espacio o Enter | Boton FIRE |
+| Volver a la letra anterior | Retroceso (Backspace) | - |
+
+Los botones virtuales semitransparentes se dibujan siempre sobre el juego y admiten multitoque (moverse y disparar a la vez).
+
+## High Scores
+
+- Se guarda un top 10 ordenado de mayor a menor puntaje.
+- Si el puntaje final es mayor que 0 y hay hueco en la tabla o supera al ultimo, aparece `NEW RECORD!` para introducir 3 iniciales estilo arcade.
+- Despues se muestra la tabla (la nueva entrada parpadea) durante 10 s o hasta pulsar FIRE.
+- Persistencia: en escritorio se guarda en `highscores.txt` en el directorio de trabajo; en web, en `localStorage` (clave `game00_highscores`) mediante el plugin JS de `static/index.html`. Si no se puede escribir (p. ej. Android), la tabla dura solo la sesion.
 
 ## Mecanicas
 
@@ -69,7 +81,9 @@ src/
   entities.rs             # Bullet, Target y TargetType
   game.rs                 # Loop principal y transiciones de estado
   game/
-    screens.rs            # Pantalla inicial y pantalla Game Over
+    controls.rs           # Entrada unificada (teclado/tactil/raton) y botones virtuales
+    highscores.rs         # Ranking top 10, persistencia y entrada de iniciales
+    screens.rs            # Pantallas inicial, Game Over, nuevo record y High Scores
     session.rs            # Estado y coordinacion de la partida
     session/
       player.rs           # Entrada, movimiento, disparo y dibujo del jugador

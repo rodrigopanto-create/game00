@@ -17,7 +17,9 @@ El crate se organiza en entidades y modulos de juego. Macroquad mantiene el loop
 
 ### Loop y pantallas
 
-- `src/game.rs` controla el loop y las transiciones entre `StartScreen`, `Playing` y `GameOver`.
+- `src/game.rs` controla el loop y las transiciones entre `StartScreen`, `Playing`, `GameOver`, `NewRecord` y `HighScores`.
+- `src/game/highscores.rs` mantiene el top 10, lo persiste (archivo `highscores.txt` en escritorio, `localStorage` en WASM via plugin JS en `static/index.html`) e implementa el selector de iniciales `InitialsEntry`.
+- `src/game/controls.rs` combina teclado, toques (`touches()`) y clic de raton en un `Controls` por frame, y dibuja los botones virtuales semitransparentes.
 - `src/game/screens.rs` dibuja la pantalla inicial y la pantalla de fin de partida.
 - `src/game/session.rs` mantiene el estado de una partida: jugador, entidades, vida, puntaje y dificultad. Coordina la actualizacion y el renderizado.
 - `src/game/session/player.rs` procesa movimiento/disparo y dibuja la nave.
@@ -26,12 +28,13 @@ El crate se organiza en entidades y modulos de juego. Macroquad mantiene el loop
 
 ## Ciclo de vida y flujo por frame
 
-1. `run()` obtiene el tiempo transcurrido desde el frame anterior.
-2. En `StartScreen`, acepta Espacio o Enter, reinicia la sesion e inicia la partida.
-3. En `Playing`, `GameSession::update()` actualiza la dificultad, el jugador y el mundo. Si la vida llega a cero, el estado cambia a `GameOver`.
+1. `run()` obtiene el tiempo transcurrido desde el frame anterior y lee la entrada con `Controls::poll()`.
+2. En `StartScreen`, acepta Espacio, Enter o el boton FIRE, reinicia la sesion e inicia la partida.
+3. En `Playing`, `GameSession::update()` actualiza la dificultad, el jugador y el mundo. Si la vida llega a cero, el estado cambia a `NewRecord` si el puntaje entra al ranking, o a `GameOver` si no.
 4. La sesion dibuja fondo, nave, balas, objetivos y HUD.
-5. En `GameOver`, se muestra el puntaje final. Espacio o Enter reinicia los datos y vuelve a la pantalla inicial.
-6. `next_frame().await` cede el control a Macroquad.
+5. En `NewRecord`, el jugador elige 3 iniciales; al confirmar se guardan y se pasa a `HighScores`. En `GameOver`, FIRE lleva a `HighScores`. `HighScores` vuelve a `StartScreen` tras 10 s o con FIRE. Tras cada transicion, FIRE se ignora 0,5 s para no saltar pantallas sin querer.
+6. `Controls::draw()` dibuja los botones virtuales encima de todo.
+7. `next_frame().await` cede el control a Macroquad.
 
 El orden de actualizacion del mundo es: aparicion de objetivos, movimiento de balas, movimiento de objetivos y perdida de vida, colisiones, y limpieza de entidades inactivas.
 

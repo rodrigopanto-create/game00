@@ -30,6 +30,8 @@ src/
   entities.rs
   game.rs
   game/
+    controls.rs
+    highscores.rs
     screens.rs
     session.rs
     session/

@@ -59,14 +59,14 @@ impl GameSession {
     }
 
     /// Actualiza la partida y devuelve `true` cuando el jugador pierde toda la vida.
-    pub(super) fn update(&mut self, delta: f32) -> bool {
+    pub(super) fn update(&mut self, delta: f32, controls: &super::Controls) -> bool {
         self.spawn_timer += delta;
         self.game_time += delta;
 
         self.target_speed = (INITIAL_TARGET_SPEED + self.game_time * 6.0).min(550.0);
         self.spawn_interval = (1.0 - self.game_time * 0.012).max(0.3);
 
-        player::update(self, delta);
+        player::update(self, delta, controls);
         world::update(self, delta);
         self.health <= 0.0
     }
