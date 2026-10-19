@@ -2,7 +2,7 @@ name: Deploy game00 to GitHub Pages
 
 on:
   push:
-    branches: [ main ] # O master, según tu rama principal
+    branches: [ main ]
 
 permissions:
   contents: write
@@ -22,8 +22,11 @@ jobs:
       - name: Instalar wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
+      - name: Instalar wasm-bindgen-cli explícito de forma limpia
+        run: cargo install wasm-bindgen-cli --version 0.2.92
+
       - name: Compilar Macroquad para Web
-        run: wasm-pack build --target web --out-dir dist
+        run: wasm-pack build --target web --out-dir dist --no-wasm-bindgen
 
       - name: Desplegar a GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
