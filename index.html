@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Game00</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: none;
+        }
+    </style>
+    <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<script>
+  // Registrar el Service Worker de forma nativa
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js');
+  }
+</script>
+</head>
+<body>
+    <canvas id="glcanvas" tabindex='1'></canvas>
+
+    <!-- Cargar el JS de soporte de Macroquad -->
+    <script src="mq_js_bundle.js"></script>
+    <script>
+        // Persistencia de High Scores en localStorage (ver src/game/highscores.rs).
+        miniquad_add_plugin({
+            name: "game00_storage",
+            version: 1,
+            register_plugin: function (importObject) {
+                var KEY = "game00_highscores";
+                var pending = new Uint8Array(0);
+
+                importObject.env.game00_storage_len = function () {
+                    try {
+                        pending = new TextEncoder().encode(localStorage.getItem(KEY) || "");
+                    } catch (e) {
+                        pending = new Uint8Array(0);
+                    }
+                    return pending.length;
+                };
+                importObject.env.game00_storage_read = function (ptr, maxLen) {
+                    var n = Math.min(pending.length, maxLen);
+                    new Uint8Array(wasm_memory.buffer, ptr, n).set(pending.subarray(0, n));
+                    pending = new Uint8Array(0);
+                    return n;
+                };
+                importObject.env.game00_storage_write = function (ptr, len) {
+                    try {
+                        var bytes = new Uint8Array(wasm_memory.buffer, ptr, len);
+                        localStorage.setItem(KEY, new TextDecoder().decode(bytes));
+                    } catch (e) {
+                        console.warn("No se pudo guardar High Scores:", e);
+                    }
+                };
+            }
+        });
+
+        // Cargar y ejecutar el archivo .wasm
+        load("./game00.wasm");
+    </script>
+</body>
+</html>
