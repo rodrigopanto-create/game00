@@ -4,13 +4,11 @@ on:
   push:
     branches: [ main ]
 
-# Permisos requeridos para el despliegue nativo de GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Permite solo un despliegue simultáneo
 concurrency:
   group: "pages"
   cancel-in-progress: true
@@ -36,17 +34,14 @@ jobs:
       - name: Compilar crate a WebAssembly con Cargo
         run: cargo build --release --target wasm32-unknown-unknown
 
-      - name: Generar bindings con wasm-bindgen
+      - name: Generar bindings para Macroquad (no-modules)
         run: |
           mkdir -p dist
-          wasm-bindgen --target web --out-dir dist --out-name game00 target/wasm32-unknown-unknown/release/game00.wasm
-          if [ -f "static/index.html" ]; then
-            cp static/index.html dist/
-          elif [ -f "index.html" ]; then
-            cp index.html dist/
-          fi
-          cp static/*.js dist/ 2>/dev/null || true
-          cp static/*.json dist/ 2>/dev/null || true
+          # Copiar primero los archivos estáticos (index.html, mq_js_bundle.js, etc.)
+          cp -r static/* dist/ 2>/dev/null || cp -r * dist/ 2>/dev/null || true
+          
+          # Generar con --target no-modules para que los scripts globales de Macroquad reconozcan los bindings
+          wasm-bindgen --target no-modules --out-dir dist --out-name game00 target/wasm32-unknown-unknown/release/game00.wasm
 
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
