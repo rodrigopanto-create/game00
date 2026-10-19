@@ -39,8 +39,12 @@ jobs:
       - name: Generar bindings con wasm-bindgen
         run: |
           mkdir -p dist
-          wasm-bindgen --target web --out-dir dist target/wasm32-unknown-unknown/release/game00.wasm
-          cp static/index.html dist/ 2>/dev/null || true
+          wasm-bindgen --target web --out-dir dist --out-name game00 target/wasm32-unknown-unknown/release/game00.wasm
+          if [ -f "static/index.html" ]; then
+            cp static/index.html dist/
+          elif [ -f "index.html" ]; then
+            cp index.html dist/
+          fi
           cp static/*.js dist/ 2>/dev/null || true
           cp static/*.json dist/ 2>/dev/null || true
 
