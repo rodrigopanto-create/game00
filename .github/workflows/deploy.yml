@@ -19,14 +19,19 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
-      - name: Instalar wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-
-      - name: Instalar wasm-bindgen-cli explícito de forma limpia
+      - name: Instalar wasm-bindgen-cli explícito
         run: cargo install wasm-bindgen-cli --version 0.2.92
 
-      - name: Compilar Macroquad para Web
-        run: wasm-pack build --target web --out-dir dist --no-wasm-bindgen
+      - name: Compilar crate a WebAssembly con Cargo
+        run: cargo build --release --target wasm32-unknown-unknown
+
+      - name: Generar bindings con wasm-bindgen
+        run: |
+          mkdir -p dist
+          wasm-bindgen --target web --out-dir dist target/wasm32-unknown-unknown/release/game00.wasm
+          cp static/index.html dist/ 2>/dev/null || true
+          cp static/*.js dist/ 2>/dev/null || true
+          cp static/*.json dist/ 2>/dev/null || true
 
       - name: Desplegar a GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
