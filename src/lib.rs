@@ -1,18 +1,8 @@
-use macroquad::prelude::*;
+//! API publica del juego.
+//!
+//! Este crate expone la funcion `run` que inicia el loop principal.
 
 pub mod entities;
 pub mod game;
 
 pub use game::run;
-
-fn window_conf() -> Conf {
-    Conf {
-        window_title: "Game00".to_owned(),
-        ..Default::default()
-    }
-}
-
-#[macroquad::main(window_conf)]
-async fn main() {
-    run().await;
-}

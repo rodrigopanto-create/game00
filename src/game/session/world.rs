@@ -16,23 +16,29 @@ pub(super) fn update(session: &mut GameSession, delta: f32) {
 fn spawn_targets(session: &mut GameSession) {
     if session.spawn_timer > session.spawn_interval {
         session.spawn_timer = 0.0;
+
+        // 1. Primero decidimos qué tipo de objetivo es de forma aleatoria
         let target_type = match rand::gen_range(0, 3) {
-            0 => TargetType::Standard,
+            0 => TargetType::Normal, // o TargetType::Standard según tu enum
             1 => TargetType::Fast,
-            _ => TargetType::ZigZag,
+            _ => TargetType::Zigzag,
         };
+
+        // 2. Calculamos los márgenes y la posición X basada en ese tipo
         let margin = if target_type.is_zigzag() {
-            ZIGZAG_AMPLITUDE + target_type.size() / 2.0
+            ZIGZAG_AMPLITUDE + 25.0 // Ajusta el tamaño base si aplica
         } else {
-            20.0 + target_type.size() / 2.0
+            20.0 + 25.0
         };
         let random_x = rand::gen_range(margin, screen_width() - margin);
+
+        // 3. Empujamos el objetivo ya vitaminado al vector de la sesión
         session.targets.push(Target {
             rect: Rect::new(
-                random_x - target_type.size() / 2.0,
-                -target_type.size(),
-                target_type.size(),
-                target_type.size(),
+                random_x - 25.0, // centrado del tamaño
+                -50.0,
+                50.0,
+                50.0,
             ),
             active: true,
             target_type,
@@ -76,7 +82,7 @@ fn resolve_collisions(session: &mut GameSession) {
             if bullet.rect.overlaps(&target.rect) {
                 bullet.active = false;
                 target.active = false;
-                session.score += target.target_type.points();
+                session.score += target.target_type.points() as u32;
             }
         }
     }
