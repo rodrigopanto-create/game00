@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 macroquad = "0.4.16"
+wasm-bindgen = "0.2"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
