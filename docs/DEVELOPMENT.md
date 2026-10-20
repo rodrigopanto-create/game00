@@ -46,3 +46,18 @@ Si luego se agregan sprites, usar:
 - `cargo fmt` aplicado.
 - `cargo clippy -- -D warnings` sin warnings.
 - README actualizado si cambia gameplay o setup.
+
+## Cargador web
+
+- `static/mq_js_bundle.js` se ejecuta en modo estricto. Los callbacks de plugins
+  deben declararse en su propio scope: el plugin `quad_net` usa
+  `var register_plugin` para evitar un `ReferenceError` al cargar el juego.
+  Conservar esta correccion al reemplazar o regenerar el bundle.
+- El service worker abre la cache con `caches.open`. Incrementar su version
+  en `static/sw.js` al actualizar los recursos precargados para no reutilizar
+  un cargador o un WASM anterior.
+- El workflow de Pages ejecuta pruebas y Clippy, compila el binario con
+  `cargo build --locked --release --target wasm32-unknown-unknown --bin game00`
+  y copia el WASM a la raiz del sitio junto a los archivos estaticos.
+  El cargador de Macroquad usa ese binario directamente, sin generar bindings
+  adicionales con `wasm-bindgen-cli`.

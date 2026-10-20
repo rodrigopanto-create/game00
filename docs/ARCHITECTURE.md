@@ -29,37 +29,45 @@ Todo ocurre dentro de `run()` y se ejecuta una vez por frame.
 - Define datos de entidades del juego.
 - `Bullet`: rectangulo, velocidad y bandera de actividad.
 - `Target`: rectangulo y bandera de actividad.
+- `PowerUpType`, `PowerUp` y `PowerUpEffects`: coleccionables y efectos
+  temporales independientes, renovables y combinables.
+- `Boss` y `EnemyBullet`: vida, movimiento y ataques del jefe.
 
 ### `game.rs`
 
 - Contiene el loop principal.
-- Procesa input del jugador.
-- Spawnea enemigos por temporizador.
-- Actualiza posiciones.
-- Resuelve colisiones.
-- Renderiza mundo y HUD.
+- Gestiona las pantallas y delega el combate a `game/session.rs`.
+- `game/controls.rs` unifica teclado, raton y tactil, incluido disparo mantenido.
+- `game/session.rs` mantiene las fases Wave, Boss y Victory por nivel.
+- `game/session/player.rs` aplica movimiento, cadencia y disparo multiple.
+- `game/session/world.rs` gestiona spawn, coleccionables, jefe y colisiones.
+- `game/session/hud.rs` dibuja score, nivel, efectos, vida y transicion.
 
 ## Flujo por frame
 
 1. Calcular `delta` con `get_frame_time()`.
 2. Aplicar input horizontal al jugador.
 3. Limitar jugador al ancho de pantalla.
-4. Crear bala cuando se presiona espacio.
-5. Spawnear target cuando el timer supera 1.0s.
-6. Mover balas y targets.
-7. Detectar colisiones bala vs target.
+4. Actualizar efectos y crear balas segun el cooldown y los bonos activos.
+5. Spawnear targets solo en la fase Wave, segun la dificultad actual.
+6. Mover balas, targets, bonos y jefe; resolver recogidas y ataques hostiles.
+7. Detectar impactos del jugador y contar bajas; iniciar Boss al alcanzar
+   el umbral o Victory al agotar la vida del jefe.
 8. Limpiar entidades inactivas.
-9. Dibujar fondo, jugador, balas, targets y score.
+9. Dibujar fondo, jugador, mundo y HUD; dibujar los botones tactiles al final.
 10. Esperar siguiente frame con `next_frame().await`.
 
 ## Decisiones actuales
 
 - Entidades representadas con `Rect` para simplificar colision y render.
 - Colision AABB para costo bajo por frame.
-- Textura del jugador generada en runtime para evitar dependencia de assets.
+- Graficos geometricos para evitar dependencia de assets.
+- La simulacion recibe el viewport para probar colisiones y progresion sin
+  inicializar una ventana de Macroquad. El render usa las mismas entidades
+  en escritorio y movil.
+- La fase Victory congela el combate y los efectos durante 2.5 segundos.
+  Luego reinicia las bajas y los timers de oleada, conservando vida y score.
 
 ## Deuda tecnica conocida
 
-- `game.rs` aun concentra demasiadas responsabilidades.
-- Falta sistema de estados de juego.
 - Falta separar configuraciones en constantes estructuradas.

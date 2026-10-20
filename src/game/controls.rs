@@ -76,7 +76,7 @@ impl Controls {
             down_pressed: is_key_pressed(KeyCode::Down) || is_key_pressed(KeyCode::S),
             back_pressed: is_key_pressed(KeyCode::Backspace),
             action_pressed: is_key_pressed(KeyCode::Space) || is_key_pressed(KeyCode::Enter),
-            action_down: false,
+            action_down: is_key_down(KeyCode::Space) || is_key_down(KeyCode::Enter),
         };
 
         for touch in touches() {

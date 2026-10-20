@@ -1,6 +1,8 @@
+const CACHE_NAME = 'game00-cache-v2';
+
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.use('game00-cache-v1').then((cache) => {
+    caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll([
         './index.html',
         './mq_js_bundle.js',
@@ -12,7 +14,7 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('fetch', (e) => {
   e.respondWith(
-    caches.match(e.request).then((response) => {
+    caches.open(CACHE_NAME).then((cache) => cache.match(e.request)).then((response) => {
       return response || fetch(e.request);
     })
   );
